@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+const fileUpload = require('express-fileupload');
 const routes = require('./router');
 
 const app = express();
@@ -8,6 +10,12 @@ app.use(
     limit: '20mb',
   }),
 );
+
+app.use(cors());
+
+app.use(fileUpload({
+  createParentPath: true,
+}));
 
 app.use(
   express.urlencoded({
