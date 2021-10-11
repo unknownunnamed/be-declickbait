@@ -19,6 +19,12 @@ module.exports = (app) => {
   app.route('/berita/:id')
     .get(controller.berita.getBeritaById);
 
+  app.route('/totalBerita')
+    .get(controller.berita.getTotalBerita);
+
+  app.route('/sumberberita')
+    .get(controller.berita.getSumberBerita);
+
   app.route('/berita/:id')
     .put(controller.berita.putBerita);
 
@@ -30,4 +36,19 @@ module.exports = (app) => {
 
   app.route('/beritaExcel')
     .post(controller.berita.postBeritaExcel);
+
+  app.route('/train')
+    .get(controller.train);
+
+  app.route('/test')
+    .get(controller.test);
+
+  app.route('/detection')
+    .post(controller.detection);
+
+  app.route('/commons')
+    .get(controller.commons);
+
+  app.route('/kata/:id')
+    .get(controller.kata);
 };

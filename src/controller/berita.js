@@ -1,65 +1,69 @@
-const excelToJson = require('convert-excel-to-json');
-const del = require('del');
-const model = require('../model/model');
+const excelToJson = require("convert-excel-to-json");
+const del = require("del");
+const Sequelize = require("sequelize");
+const model = require("../model/model");
 
 const beritaController = {};
 
 const postBeritaExcel = (req, res) => {
   const { data } = req.files;
   const { sumberBerita, idAdmin } = req.body;
-  if (data && data.name.split('.').slice(-1)[0] === 'xlsx') {
+  if (data && data.name.split(".").slice(-1)[0] === "xlsx") {
     data.mv(`./tmp/${data.name}`, async (err) => {
       if (err) {
-        res.json({ status: 'error' });
+        res.json({ status: "error" });
       } else {
         const dataExcel = excelToJson({
           sourceFile: `./tmp/${data.name}`,
           header: { rows: 1 },
           columnToKey: {
-            A: 'judul',
-            B: 'label',
+            A: "judul",
+            B: "label",
           },
-          sheets: ['Sheet1'],
+          sheets: ["Sheet1"],
         });
-        await dataExcel.Sheet1
-          .slice(0, dataExcel.Sheet1.length * 0.8).map((e) => model.berita.create({
+        await dataExcel.Sheet1.slice(0, dataExcel.Sheet1.length * 0.8).map(
+          (e) =>
+            model.berita.create({
+              judul_berita: e.judul,
+              sumber_berita: sumberBerita,
+              status_data: "train",
+              label:
+                e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
+              id_admin: idAdmin,
+            })
+        );
+        await dataExcel.Sheet1.slice(dataExcel.Sheet1.length * 0.8).map((e) =>
+          model.berita.create({
             judul_berita: e.judul,
             sumber_berita: sumberBerita,
-            status_data: 'train',
-            label: e.label === 'non-clickbait' ? 'Bukan Clickbait' : 'Clickbait',
+            status_data: "test",
+            label:
+              e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
             id_admin: idAdmin,
-          }));
-        await dataExcel.Sheet1
-          .slice(dataExcel.Sheet1.length * 0.8).map((e) => model.berita.create({
-            judul_berita: e.judul,
-            sumber_berita: sumberBerita,
-            status_data: 'test',
-            label: e.label === 'non-clickbait' ? 'Bukan Clickbait' : 'Clickbait',
-            id_admin: idAdmin,
-          }));
-        console.log('success');
+          })
+        );
+        console.log("success");
         del([`./tmp/${data.name}`]);
-        res.json({ status: 'success' });
+        res.json({ status: "success" });
       }
     });
   } else {
-    res.status(400).json({ status: 'error' });
+    res.status(400).json({ status: "error" });
   }
 };
 
 const postBerita = (req, res) => {
-  const {
-    judulBerita, sumberBerita, statusData, label, idAdmin,
-  } = req.body;
+  const { judulBerita, sumberBerita, statusData, label, idAdmin } = req.body;
   if (
-    judulBerita !== ''
-    || sumberBerita !== ''
-    || statusData !== ''
-    || label !== ''
-    || judulBerita !== null
-    || sumberBerita !== null
-    || statusData !== null
-    || label !== null
+    judulBerita !== "" ||
+    sumberBerita !== "" ||
+    statusData !== "" ||
+    label !== "" ||
+    judulBerita !== null ||
+    sumberBerita !== null ||
+    statusData !== null ||
+    label !== null
   ) {
     model.berita
       .create({
@@ -69,13 +73,15 @@ const postBerita = (req, res) => {
         label,
         id_admin: idAdmin,
       })
-      .then((result) => res.status(200).json({
-        status: 'success',
-        data: result,
-      }))
+      .then((result) =>
+        res.status(200).json({
+          status: "success",
+          data: result,
+        })
+      )
       .catch((error) => res.status(500).json({ status: error.toString() }));
   } else {
-    res.status(400).json({ status: 'error cannot be null' });
+    res.status(400).json({ status: "error cannot be null" });
   }
 };
 
@@ -86,19 +92,30 @@ const getBerita = (req, res) => {
         where: {
           status_data: req.query.type,
         },
+        attributes: {
+          include: [
+            [Sequelize.fn("count", Sequelize.col("kata.id_berita")), "kataCount"],
+          ],
+        },
+        include: { model: model.kata, attributes: [],  as: "kata" },
+        group: ['berita.id']
       })
-      .then((result) => res.status(200).json({
-        status: 'success',
-        data: result,
-      }))
+      .then((result) =>
+        res.status(200).json({
+          status: "success",
+          data: result,
+        })
+      )
       .catch((error) => res.status(400).json({ status: error.toString() }));
   } else {
     model.berita
       .findAll()
-      .then((result) => res.status(200).json({
-        status: 'success',
-        data: result,
-      }))
+      .then((result) =>
+        res.status(200).json({
+          status: "success",
+          data: result,
+        })
+      )
       .catch((error) => res.status(400).json({ status: error.toString() }));
   }
 };
@@ -110,17 +127,59 @@ const getBeritaById = (req, res) => {
         id: req.params.id,
       },
     })
-    .then((result) => res.status(200).json({
-      status: 'success',
-      data: result[0],
-    }))
+    .then((result) =>
+      res.status(200).json({
+        status: "success",
+        data: result[0],
+      })
+    )
     .catch((error) => res.status(400).json({ status: error.toString() }));
 };
 
+const getTotalBerita = (req, res) => {
+  if (req.query.type) {
+    model.berita
+      .count({
+        where: {
+          status_data: req.query.type,
+        },
+      })
+      .then((result) =>
+        res.status(200).json({
+          status: "success",
+          data: result,
+        })
+      )
+      .catch((error) => res.status(400).json({ status: error.toString() }));
+  } else {
+    model.berita
+      .count()
+      .then((result) =>
+        res.status(200).json({
+          status: "success",
+          data: result,
+        })
+      )
+      .catch((error) => res.status(400).json({ status: error.toString() }));
+  }
+};
+
+const getSumberBerita = async (req, res) => {
+  try {
+    const sumberBerita = [];
+    const berita = await model.berita.findAll();
+    berita.forEach((element) => {
+      if (!sumberBerita.includes(element.sumber_berita))
+        sumberBerita.push(element.sumber_berita);
+    });
+    res.status(200).json({ status: "success", data: sumberBerita });
+  } catch (err) {
+    res.status(200).json({ status: err.toString(), data: [] });
+  }
+};
+
 const putBerita = (req, res) => {
-  const {
-    judulBerita, sumberBerita, statusData, label, idAdmin,
-  } = req.body;
+  const { judulBerita, sumberBerita, statusData, label, idAdmin } = req.body;
   model.berita
     .update(
       {
@@ -134,7 +193,7 @@ const putBerita = (req, res) => {
         where: {
           id: req.params.id,
         },
-      },
+      }
     )
     .then((result) => {
       if (result[0] === 1) {
@@ -146,13 +205,13 @@ const putBerita = (req, res) => {
           })
           .then((data) => {
             res.status(200).json({
-              status: 'success',
+              status: "success",
               data: data[0],
             });
           });
       } else {
         res.status(201).json({
-          status: 'error',
+          status: "error",
         });
       }
     })
@@ -166,22 +225,26 @@ const deleteBerita = (req, res) => {
         id: req.params.id,
       },
     })
-    .then((result) => res.status(200).json({
-      status: 'success',
-      data: result,
-    }))
+    .then((result) =>
+      res.status(200).json({
+        status: "success",
+        data: result,
+      })
+    )
     .catch((error) => res.status(500).json({ status: error.toString() }));
 };
 
 const deleteAllBerita = (req, res) => {
   model.berita
-    .sync({
-      force: true,
+    .destroy({
+      where: {},
     })
-    .then((result) => res.status(200).json({
-      status: 'success',
-      data: result,
-    }))
+    .then((result) =>
+      res.status(200).json({
+        status: "success",
+        data: result,
+      })
+    )
     .catch((error) => res.status(500).json({ status: error.toString() }));
 };
 
@@ -192,5 +255,7 @@ beritaController.postBerita = postBerita;
 beritaController.getBerita = getBerita;
 beritaController.postBeritaExcel = postBeritaExcel;
 beritaController.deleteAllBerita = deleteAllBerita;
+beritaController.getSumberBerita = getSumberBerita;
+beritaController.getTotalBerita = getTotalBerita;
 
 module.exports = beritaController;

@@ -9,6 +9,7 @@ const {
   derivationPrefix,
   stemmingWord
 } = require('../src/controller/textPreprocessing');
+const model = require('../src/model/model');
 require('mysql2/node_modules/iconv-lite').encodingExists('foo');
 
 describe('caseFolding', () => {
@@ -32,43 +33,52 @@ describe('tokenizing', () => {
 
 describe('stemming', () => {
   test('it should return true if you input the word root', async () => {
-    const result = await getKata("sekolah");
+    const kata = await model.kamus.findAll();
+    const result = getKata("sekolah", kata);
     expect(result).toBe(true);
   });
 
   test('it should return word root if the word have inflecitional suffix', async () => {
-    const result = await inflexionalSuffixes("meskipun");
+    const kata = await model.kamus.findAll();
+    const result = inflexionalSuffixes("meskipun", kata);
     expect(result).toStrictEqual({ inflexResult: "meski", isInflexTrue: true });
   });
 
   test('it should return word root if the word have inflectional possessive pronoun suffix', async () => {
-    const result = await pronounSuffixes("punyamu");
+    const kata = await model.kamus.findAll();
+    const result = pronounSuffixes("punyamu", kata);
     expect(result).toStrictEqual({ proSuffixes: "punya", isPSTrue: true });
   });
 
   test('it should return word root if the word have derivation suffix', async () => {
-    const result = await derivationSuffixes("punyai");
+    const kata = await model.kamus.findAll();
+    const result = derivationSuffixes("punyai", kata);
     expect(result).toBe("punya");
   });
   
   test('it should return word root if the word have derivation suffix', async () => {
-    const result = await derivationSuffixes("punyaan");
+    const kata = await model.kamus.findAll();
+    const result = derivationSuffixes("punyaan", kata);
     expect(result).toBe("punya");
   });
 
   test('it should return word root if the word have derivation prefix', async () => {
-    const result = await derivationPrefix("kesini");
+    const kata = await model.kamus.findAll();
+    const result = derivationPrefix("kesini", kata);
     expect(result).toBe("sini");
   });
 
   test('it should return word root when input word', async () => {
-    const result = await stemmingWord("kedengannyalah");
+    const kata = await model.kamus.findAll();
+     result = stemmingWord("kedengannyalah", kata);
     expect(result).toBe("dengan");
   });
 
   test('it should return ["meski", "pulang", "ke", "sekolah"] where input array ["meskipun", "pulanglah", "ke", "sekolah"]', async () => {
     const data = ['meskipun', 'pulanglah', 'ke', 'sekolah'];
-    const result = await stemming(data);
+    const kata = await model.kamus.findAll();
+    const result = stemming(data, kata);
     expect(result).toStrictEqual(['meski', 'pulang', 'ke', 'sekolah']);
   });
 });
+
