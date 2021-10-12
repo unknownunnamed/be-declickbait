@@ -16,6 +16,10 @@ const train = async (req, res) => {
         status_data: "train",
       },
     });
+    if (dataKata.length === 0 || databerita.length === 0)
+      res.status(400).json({
+        status: err.toString(),
+      });
     const textProcessing = [];
     for (const berita of databerita) {
       const {
@@ -27,7 +31,10 @@ const train = async (req, res) => {
         label_uji,
         id_admin,
       } = berita;
-      const processKata = stemming(tokenizing(caseFolding(judul_berita)), dataKata);
+      const processKata = stemming(
+        tokenizing(caseFolding(judul_berita)),
+        dataKata
+      );
       const data = [...processKata, sumber_berita];
       textProcessing.push({
         id,
@@ -83,6 +90,14 @@ const test = async (req, res) => {
         tipekata: "train",
       },
     });
+    if (
+      dataKata.length === 0 ||
+      databerita.length === 0 ||
+      wordtrain.length === 0
+    )
+      res.status(400).json({
+        status: err.toString(),
+      });
     const commons = await model.commons.findAll();
     const textProcessing = [];
     for (const berita of databerita) {
@@ -95,7 +110,10 @@ const test = async (req, res) => {
         label_uji,
         id_admin,
       } = berita;
-      const processKata = stemming(tokenizing(caseFolding(judul_berita)), dataKata);
+      const processKata = stemming(
+        tokenizing(caseFolding(judul_berita)),
+        dataKata
+      );
       const data = [...processKata, sumber_berita];
       textProcessing.push({
         id,
@@ -129,14 +147,16 @@ const test = async (req, res) => {
         label,
         label_uji: labelTest,
       });
-      await model.berita.update({
-        label_uji: labelTest,
-      },
-      {
-        where: {
-          id,
+      await model.berita.update(
+        {
+          label_uji: labelTest,
+        },
+        {
+          where: {
+            id,
+          },
         }
-      });
+      );
     }
 
     const dataTrue = testclickbait.filter((e) => e.label === e.label_uji);
@@ -154,16 +174,18 @@ const test = async (req, res) => {
 
     const { accuracy, recall, precisions } = confusionMatrix;
 
-    await model.commons.update({
-      accuracy,
-      recall,
-      precisions
-    },
-    {
-      where: {
-        id: 1,
+    await model.commons.update(
+      {
+        accuracy,
+        recall,
+        precisions,
+      },
+      {
+        where: {
+          id: 1,
+        },
       }
-    });
+    );
 
     res.status(200).json({
       status: "success test",
@@ -179,12 +201,20 @@ const test = async (req, res) => {
 const detection = async (req, res) => {
   try {
     const { title, sumberBerita } = req.body;
-
     const wordtrain = await model.kata.findAll({
       where: {
         tipekata: "train",
       },
     });
+
+    if (
+      wordtrain.length === 0 ||
+      title.toString() === "" ||
+      sumberBerita.toString() === ""
+    )
+      res.status(400).json({
+        status: err.toString(),
+      });
 
     const commons = await model.commons.findAll();
     const dataKata = await model.kamus.findAll();

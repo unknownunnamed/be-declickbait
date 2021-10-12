@@ -33,15 +33,27 @@ const postBeritaExcel = (req, res) => {
               id_admin: idAdmin,
             })
         );
-        await dataExcel.Sheet1.slice(dataExcel.Sheet1.length * 0.8).map((e) =>
-          model.berita.create({
-            judul_berita: e.judul,
-            sumber_berita: sumberBerita,
-            status_data: "test",
-            label:
-              e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
-            id_admin: idAdmin,
-          })
+        // await dataExcel.Sheet1.slice(dataExcel.Sheet1.length * 0.8).map((e) =>
+        //   model.berita.create({
+        //     judul_berita: e.judul,
+        //     sumber_berita: sumberBerita,
+        //     status_data: "test",
+        //     label:
+        //       e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
+        //     id_admin: idAdmin,
+        //   })
+        // );
+        Promise.all(
+          dataExcel.Sheet1.slice(dataExcel.Sheet1.length * 0.8).map((e) =>
+            model.berita.create({
+              judul_berita: e.judul,
+              sumber_berita: sumberBerita,
+              status_data: "test",
+              label:
+                e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
+              id_admin: idAdmin,
+            })
+          )
         );
         console.log("success");
         del([`./tmp/${data.name}`]);
@@ -94,11 +106,14 @@ const getBerita = (req, res) => {
         },
         attributes: {
           include: [
-            [Sequelize.fn("count", Sequelize.col("kata.id_berita")), "kataCount"],
+            [
+              Sequelize.fn("count", Sequelize.col("kata.id_berita")),
+              "kataCount",
+            ],
           ],
         },
-        include: { model: model.kata, attributes: [],  as: "kata" },
-        group: ['berita.id']
+        include: { model: model.kata, attributes: [], as: "kata" },
+        group: ["berita.id"],
       })
       .then((result) =>
         res.status(200).json({
