@@ -30,7 +30,11 @@ const testClassification = (tfidf, commons, data) => {
       total * testProbabilitas(tfidf, commons, data, value, "not_clickbait"),
     commons.n_not_clickbait
   );
-  return valueClickbait > valueNotClickbait ? "Clickbait" : "Bukan Clickbait";
+  return {
+    result: valueClickbait > valueNotClickbait ? "Clickbait" : "Bukan Clickbait",
+    valueClickbait,
+    valueNotClickbait,
+  };
 };
 
 module.exports = { testIDF, testTFIDF, testProbabilitas, testClassification };
