@@ -1,54 +1,69 @@
-const controller = require('./controller/controller');
+const controller = require("./controller/controller");
 
-module.exports = (app) => {
-  app.route('/')
-    .get((req, res) => res.send({
-      status: 'success',
-      text: 'hello world',
-    }));
+const express = require("express");
+const router = express.Router();
 
-  app.route('/login')
-    .post(controller.adminGetLogin);
+router.post("/login", controller.adminGetLogin);
 
-  app.route('/berita')
-    .post(controller.berita.postBerita);
+router.post("/berita", controller.berita.postBerita);
 
-  app.route('/berita')
-    .get(controller.berita.getBerita);
+router.get("/berita", controller.berita.getBerita);
 
-  app.route('/berita/:id')
-    .get(controller.berita.getBeritaById);
+router.get("/berita/:id", controller.berita.getBeritaById);
 
-  app.route('/totalBerita')
-    .get(controller.berita.getTotalBerita);
+router.get("/totalBerita", controller.berita.getTotalBerita);
 
-  app.route('/sumberberita')
-    .get(controller.berita.getSumberBerita);
+router.get("/sumberberita", controller.berita.getSumberBerita);
 
-  app.route('/berita/:id')
-    .put(controller.berita.putBerita);
+router.put("/berita/:id", controller.berita.putBerita);
 
-  app.route('/berita/:id')
-    .delete(controller.berita.deleteBerita);
+router.delete("/berita/:id", controller.berita.deleteBerita);
 
-  app.route('/berita')
-    .delete(controller.berita.deleteAllBerita);
+router.delete("/berita", controller.berita.deleteAllBerita);
 
-  app.route('/beritaExcel')
-    .post(controller.berita.postBeritaExcel);
+router.post("/beritaExcel", controller.berita.postBeritaExcel);
 
-  app.route('/train')
-    .get(controller.train);
+router.get("/train", controller.train);
 
-  app.route('/test')
-    .get(controller.test);
+router.get("/test", controller.test);
 
-  app.route('/detection')
-    .post(controller.detection);
+router.post("/detection", controller.detection);
 
-  app.route('/commons')
-    .get(controller.commons);
+router.get("/commons", controller.commons);
 
-  app.route('/kata/:id')
-    .get(controller.kata);
-};
+router.get("/kata/:id", controller.kata);
+
+module.exports = router;
+
+// module.exports = (app) => {
+//   app.route("/login").post(controller.adminGetLogin);
+
+//   app.route("/berita").post(controller.berita.postBerita);
+
+//   app.route("/berita").get(controller.berita.getBerita);
+
+//   app.route("/berita/:id").get(controller.berita.getBeritaById);
+
+//   app.route("/totalBerita").get(controller.berita.getTotalBerita);
+
+//   app.route("/sumberberita").get(controller.berita.getSumberBerita);
+
+//   app.route("/berita/:id").put(controller.berita.putBerita);
+
+//   app.route("/berita/:id").delete(controller.berita.deleteBerita);
+
+//   app.route("/berita").delete(controller.berita.deleteAllBerita);
+
+//   app.route("/beritaExcel").post(controller.berita.postBeritaExcel);
+
+//   app.route("/train").get(controller.train);
+
+//   app.route("/test").get(controller.test);
+
+//   app.route("/detection").post(controller.detection);
+
+//   app.route("/commons").get(controller.commons);
+
+//   app.route("/kata/:id").get(controller.kata);
+
+// };
