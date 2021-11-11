@@ -149,7 +149,7 @@ const test = async (req, res) => {
       });
       await model.berita.update(
         {
-          label_uji: labelTest,
+          label_uji: labelTest.result,
         },
         {
           where: {
@@ -159,11 +159,11 @@ const test = async (req, res) => {
       );
     }
 
-    const dataTrue = testclickbait.filter((e) => e.label === e.label_uji);
+    const dataTrue = testclickbait.filter((e) => e.label === e.label_uji.result);
     const dataTrueClickbait = dataTrue.filter((e) => e.label === "Clickbait");
     const labelClickbait = testclickbait.filter((e) => e.label === "Clickbait");
     const ujiClickbait = testclickbait.filter(
-      (e) => e.label_uji === "Clickbait"
+      (e) => e.label_uji.result === "Clickbait"
     );
 
     const confusionMatrix = {
