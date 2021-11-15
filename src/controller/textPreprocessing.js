@@ -1,11 +1,13 @@
 const model = require('../model/model');
 
-const caseFolding = (text) => text.replace(/[^a-zA-Z ]/g, '').toLowerCase().replace( /\s\s+/g, ' ' ).trim();
+const caseFolding = (text) => text.replace(/[^a-zA-Z ]/g, '')
+                                    .toLowerCase()
+                                    .replace( /\s\s+/g, ' ' )
+                                    .trim();
 
 const tokenizing = (text) => text.split(" ");
 
 const getKata = (katadasar, dataKata) => {
-    // const kata = await model.kamus.findAll({ where: { katadasar } });
     return dataKata.filter((e) => e.katadasar === katadasar).length > 0;
 };
 
