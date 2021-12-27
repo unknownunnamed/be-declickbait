@@ -9,7 +9,7 @@ const tfidfTrain = async (data, isNotTest) => {
   const dataClickbait = data.filter((e) => e.label === "Clickbait");
   const dataNotClickbait = data.filter((e) => e.label === "Bukan Clickbait");
   for (const item of data) {
-    const { label, id, status } = item;
+    const { label, id } = item;
     for (const kata of item.data) {
       const lengthClickbait = dataClickbait.filter((e) =>
         isContain(e.data, kata)
@@ -47,7 +47,6 @@ const tfidfTrain = async (data, isNotTest) => {
         idfNotClickbait,
         idf,
         label,
-        status,
       });
 
       if (isNotTest)
@@ -87,7 +86,7 @@ const trainToCommons = (tfidf) => {
       .reduce((total, value) => total + value),
     wNotClickbait: tfidf.data
       .filter((element) => element.label === "Bukan Clickbait")
-      .map((e) => e.tf * e.idfClickbait)
+      .map((e) => e.tf * e.idfNotClickbait)
       .reduce((total, value) => total + value),
   };
 };
