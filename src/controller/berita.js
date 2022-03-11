@@ -7,7 +7,7 @@ const beritaController = {};
 
 const postBeritaExcel = (req, res) => {
   const { data } = req.files;
-  const { sumberBerita, idAdmin } = req.body;
+  const { idAdmin } = req.body;
   if (data && data.name.split(".").slice(-1)[0] === "xlsx") {
     data.mv(`./tmp/${data.name}`, async (err) => {
       if (err) {
@@ -17,22 +17,24 @@ const postBeritaExcel = (req, res) => {
           sourceFile: `./tmp/${data.name}`,
           header: { rows: 1 },
           columnToKey: {
-            A: "judul",
-            B: "label",
+            B: "judul",
+            D: "sumber",
+            F: "label",
+            G: "statusData"
           },
           sheets: ["Sheet1"],
         });
-        await dataExcel.Sheet1.slice(0, dataExcel.Sheet1.length * 0.8).map(
-          (e) =>
-            model.berita.create({
-              judul_berita: e.judul,
-              sumber_berita: sumberBerita,
-              status_data: "train",
-              label:
-                e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
-              id_admin: idAdmin,
-            })
-        );
+        // await dataExcel.Sheet1.slice(0, dataExcel.Sheet1.length * 0.8).map(
+        //   (e) =>
+        //     model.berita.create({
+        //       judul_berita: e.judul,
+        //       sumber_berita: sumberBerita,
+        //       status_data: "train",
+        //       label:
+        //         e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
+        //       id_admin: idAdmin,
+        //     })
+        // );
         // await dataExcel.Sheet1.slice(dataExcel.Sheet1.length * 0.8).map((e) =>
         //   model.berita.create({
         //     judul_berita: e.judul,
@@ -44,13 +46,13 @@ const postBeritaExcel = (req, res) => {
         //   })
         // );
         Promise.all(
-          dataExcel.Sheet1.slice(dataExcel.Sheet1.length * 0.8).map((e) =>
+          dataExcel.Sheet1.map((e) =>
             model.berita.create({
               judul_berita: e.judul,
-              sumber_berita: sumberBerita,
-              status_data: "test",
+              sumber_berita: e.sumber,
+              status_data: e.statusData,
               label:
-                e.label === "non-clickbait" ? "Bukan Clickbait" : "Clickbait",
+                e.label,
               id_admin: idAdmin,
             })
           )
