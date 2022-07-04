@@ -1,14 +1,14 @@
 const model = require('../model/model');
 
 const caseFolding = (text) => text.replace(/[^a-zA-Z ]/g, '')
-                                    .toLowerCase()
-                                    .replace( /\s\s+/g, ' ' )
-                                    .trim();
+  .toLowerCase()
+  .replace(/\s\s+/g, ' ')
+  .trim();
 
 const tokenizing = (text) => text.split(" ");
 
 const getKata = (katadasar, dataKata) => {
-    return dataKata.filter((e) => e.katadasar === katadasar).length > 0;
+  return dataKata.filter((e) => e.katadasar === katadasar).length > 0;
 };
 
 const inflexionalSuffixes = (kata, dataKata) => {
@@ -18,13 +18,13 @@ const inflexionalSuffixes = (kata, dataKata) => {
     if (kata.slice(-(suffix.length)) === suffix) {
       const isTrue = getKata(inflexResult, dataKata);
       return {
-        inflexResult, 
+        inflexResult,
         isInflexTrue: isTrue,
       }
     }
   }
   return {
-    inflexResult: kata, 
+    inflexResult: kata,
     isInflexTrue: false,
   };
 };
@@ -36,26 +36,26 @@ const pronounSuffixes = (kata, dataKata) => {
     if (kata.slice(-(suffix.length)) === suffix) {
       const isTrue = getKata(proSuffixes, dataKata);
       return {
-        proSuffixes, 
+        proSuffixes,
         isPSTrue: isTrue,
       }
     }
   }
   return {
-    proSuffixes: kata, 
+    proSuffixes: kata,
     isPSTrue: false,
   };
 };
 
 const derivationSuffixes = (kata, dataKata) => {
   if (kata.slice(-1) === 'i') {
-    const isTrue = getKata(kata.slice(0, -1),  dataKata);
+    const isTrue = getKata(kata.slice(0, -1), dataKata);
     if (isTrue) return kata.slice(0, -1);
   } else if (kata.slice(-2) == 'an') {
     const isTrue = getKata(kata.slice(0, -2), dataKata);
     if (isTrue) {
       return kata.slice(0, -2);
-    } else if(kata.slice(-3) == 'kan') {
+    } else if (kata.slice(-3) == 'kan') {
       const isAnotherTrue = getKata(kata.slice(0, -3), dataKata);
       if (isAnotherTrue) return kata.slice(0, -3);
     }
@@ -64,32 +64,81 @@ const derivationSuffixes = (kata, dataKata) => {
 }
 
 const derivationPrefix = (kata, dataKata) => {
-  const prefixes = ['be', 'di', 'ke', 'me', 'pe', 'se', 'te'];
+  const prefixes = [
+    'be',
+    'di',
+    'ke',
+    'me',
+    'pe',
+    'se',
+    'te',
+  ];
+  let awalan = '';
+  let kataBaru = kata;
   for (const prefix of prefixes) {
-    const dePrefix = kata.slice(2);
-    if (kata.slice(0, 2) === prefix) {
+    if (kataBaru.slice(0, prefix.length) === prefix) {
+      awalan = prefix;
+      const dePrefix = kataBaru.slice(prefix.length);
+      kataBaru = kataBaru.slice(prefix.length);
       const isTrue = getKata(dePrefix, dataKata);
-      if (isTrue) return dePrefix;
+      if (isTrue) {
+        return { dePrefix, awalan, isDPTrue: true };
+      }
     }
   }
-  return kata;
+  return { dePrefix: kataBaru, awalan, isDPTrue: false };
+}
+
+const cekPrefixDisallowedSufixes = (kata) => {
+  if (kata.slice(0, 2) === 'be' && kata.slice(0, -1) === 'i') {
+    return true;
+  }
+
+  if (kata.slice(0, 2) === 'se' && (kata.slice(0, -1) === 'i' || kata.slice(0, -3) === 'kan')) {
+    return true;
+  }
+
+  if (kata.slice(0, 2) === 'di' && kata.slice(0, -2) === 'an') {
+    return true;
+  }
+
+  if (kata.slice(0, 2) === 'me' && kata.slice(0, -2) === 'an') {
+    return true;
+  }
+
+  if (kata.slice(0, 2) === 'ke' && (kata.slice(0, -1) === 'i' || kata.slice(0, -3) === 'kan')) {
+    return true;
+  }
+
+  return false;
 }
 
 const stemmingWord = (kata, dataKata) => {
+  let awalanCheck;
+  let kataSementara;
   const isTrue = getKata(kata, dataKata);
   if (isTrue) return kata;
+
 
   const { inflexResult, isInflexTrue } = inflexionalSuffixes(kata, dataKata);
   if (isInflexTrue) return inflexResult;
 
   const { proSuffixes, isPSTrue } = pronounSuffixes(inflexResult, dataKata);
   if (isPSTrue) return proSuffixes;
+  kataSementara = proSuffixes;
+  let i = 0;
+  while (i <= 3) {
+    const deSuffixes = derivationSuffixes(kataSementara, dataKata);
+    if (kataSementara !== deSuffixes) return deSuffixes;
 
-  const deSuffixes = derivationSuffixes(proSuffixes, dataKata);
-  if (proSuffixes !== deSuffixes) return deSuffixes;
-
-  const dePrefix = derivationPrefix(proSuffixes, dataKata);
-  if (proSuffixes !== dePrefix) return dePrefix;
+    const { dePrefix, awalan, isDPTrue } = derivationPrefix(kataSementara, dataKata);
+    if (isDPTrue) return dePrefix;
+    if (awalanCheck === awalan) return kata;
+    awalanCheck = awalan;
+    kataSementara = dePrefix;
+    if (cekPrefixDisallowedSufixes(kataSementara)) return kata;
+    i++;
+  }
 
   return kata;
 }
@@ -98,14 +147,15 @@ const stemming = (data, dataKata) => {
   return data.map(e => stemmingWord(e, dataKata));
 };
 
-module.exports = { 
-  caseFolding, 
-  tokenizing, 
-  stemming, 
-  getKata, 
-  inflexionalSuffixes, 
-  derivationSuffixes, 
+module.exports = {
+  caseFolding,
+  tokenizing,
+  stemming,
+  getKata,
+  inflexionalSuffixes,
+  derivationSuffixes,
   pronounSuffixes,
-  derivationPrefix, 
+  derivationPrefix,
+  cekPrefixDisallowedSufixes,
   stemmingWord
 };

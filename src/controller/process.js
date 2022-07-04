@@ -174,6 +174,14 @@ const test = async (req, res) => {
 
     const { accuracy, recall, precisions } = confusionMatrix;
 
+
+    console.log(`
+      TP: ${dataTrueClickbait.length}
+      TN: ${dataTrue.filter((e) => e.label === 'Bukan Clickbait').length}
+      FP: ${testclickbait.filter((e) => e.label !== e.label_uji.result && e.label_uji.result === 'Clickbait').length}
+      FN: ${testclickbait.filter((e) => e.label !== e.label_uji.result && e.label_uji.result === 'Bukan Clickbait').length}
+    `)
+
     await model.commons.update(
       {
         accuracy,

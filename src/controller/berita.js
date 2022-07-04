@@ -2,6 +2,7 @@ const excelToJson = require("convert-excel-to-json");
 const del = require("del");
 const Sequelize = require("sequelize");
 const model = require("../model/model");
+const writeXlsxFile = require('write-excel-file/node');
 
 const beritaController = {};
 
@@ -265,6 +266,94 @@ const deleteAllBerita = (req, res) => {
     .catch((error) => res.status(500).json({ status: error.toString() }));
 };
 
+const getExcelBerita = async (req, res) => {
+  try {
+    const schemaPelatihan = [
+      {
+        column: 'No',
+        type: Number,
+        value: data => data.no,
+      },
+      {
+        column: 'Judul',
+        type: String,
+        value: data => data.judul_berita,
+      },
+      {
+        column: 'Sumber',
+        type: String,
+        value: data => data.sumber_berita,
+      },
+      {
+        column: 'Label',
+        type: String,
+        value: data => data.label,
+      }
+    ];
+
+    const schema = [
+      {
+        column: 'No',
+        type: Number,
+        value: data => data.no,
+      },
+      {
+        column: 'Judul',
+        type: String,
+        value: data => data.judul_berita,
+      },
+      {
+        column: 'Sumber',
+        type: String,
+        value: data => data.sumber_berita,
+      },
+      {
+        column: 'Label',
+        type: String,
+        value: data => data.label,
+      },
+      {
+        column: 'Hasil Klasifikasi',
+        type: String,
+        value: data => data.label_uji,
+      },
+    ];
+
+    const beritas = await model.berita.findAll();
+    const train = beritas.filter(berita => berita.status_data === 'train').map((t, index) => {
+      return {
+        no: index + 1,
+        judul_berita: t.judul_berita,
+        sumber_berita: t.sumber_berita,
+        label: t.label,
+        label_uji: t.label_uji,
+      }
+    });
+    const test = beritas.filter(berita => berita.status_data === 'test').map((t, index) => {
+      return {
+        no: index + 1,
+        judul_berita: t.judul_berita,
+        sumber_berita: t.sumber_berita,
+        label: t.label,
+        label_uji: t.label_uji,
+      }
+    });
+    const excelTrain = await writeXlsxFile(train, {
+      schema,
+      filePath: '/dataTrain.xlsx'
+    });
+    const excelTest = await writeXlsxFile(test, {
+      schema,
+      filePath: '/dataTest.xlsx'
+    });
+    console.log(excelTest);
+    console.log(excelTrain);
+    res.status(200).json({ status: "success" });
+  } catch (error) {
+    res.status(400).json({ status: `error : ${error}` });
+  }
+}
+
 beritaController.deleteBerita = deleteBerita;
 beritaController.putBerita = putBerita;
 beritaController.getBeritaById = getBeritaById;
@@ -274,5 +363,6 @@ beritaController.postBeritaExcel = postBeritaExcel;
 beritaController.deleteAllBerita = deleteAllBerita;
 beritaController.getSumberBerita = getSumberBerita;
 beritaController.getTotalBerita = getTotalBerita;
+beritaController.getExcelBerita = getExcelBerita;
 
 module.exports = beritaController;

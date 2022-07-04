@@ -15,6 +15,8 @@ router.get("/totalBerita", controller.berita.getTotalBerita);
 
 router.get("/sumberberita", controller.berita.getSumberBerita);
 
+router.get("/converToExcel", controller.berita.getExcelBerita);
+
 router.put("/berita/:id", controller.berita.putBerita);
 
 router.delete("/berita/:id", controller.berita.deleteBerita);

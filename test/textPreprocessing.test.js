@@ -34,7 +34,7 @@ describe('tokenizing', () => {
 describe('stemming', () => {
   test('it should return true if you input the word root', async () => {
     const kata = await model.kamus.findAll();
-    const result = getKata("sekolah", kata);
+    const result = getKata("renggut", kata);
     expect(result).toBe(true);
   });
 
@@ -65,20 +65,20 @@ describe('stemming', () => {
   test('it should return word root if the word have derivation prefix', async () => {
     const kata = await model.kamus.findAll();
     const result = derivationPrefix("kesini", kata);
-    expect(result).toBe("sini");
+    expect(result.dePrefix).toBe("sini");
   });
 
   test('it should return word root when input word', async () => {
     const kata = await model.kamus.findAll();
-     result = stemmingWord("kedengannyalah", kata);
-    expect(result).toBe("dengan");
+     result = stemmingWord("terenggut", kata);
+    expect(result).toBe("renggut");
   });
 
   test('it should return ["meski", "pulang", "ke", "sekolah"] where input array ["meskipun", "pulanglah", "ke", "sekolah"]', async () => {
-    const data = ['meskipun', 'pulanglah', 'ke', 'sekolah'];
+    const data = ['meskipun', 'pulanglah', 'ke', 'sekolah', 'kedaulatan', 'terenggut'];
     const kata = await model.kamus.findAll();
     const result = stemming(data, kata);
-    expect(result).toStrictEqual(['meski', 'pulang', 'ke', 'sekolah']);
+    expect(result).toStrictEqual(['meski', 'pulang', 'ke', 'sekolah', 'daulat', 'renggut']);
   });
 });
 
